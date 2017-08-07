@@ -10,10 +10,10 @@ type Verifier interface {
 	Verify(AddressInput) AddressOutput
 }
 
-func NewVerifyHandler(in, out chan *Envelope, verifier Verifier) *VerifyHandler {
+func NewVerifyHandler(input, output chan *Envelope, verifier Verifier) *VerifyHandler {
 	return &VerifyHandler{
-		input:    in,
-		output:   out,
+		input:    input,
+		output:   output,
 		verifier: verifier,
 	}
 }
