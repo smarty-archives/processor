@@ -1,27 +1,26 @@
 package processor
 
 type VerifyHandler struct {
-	in          chan *Envelope
-	out         chan *Envelope
-	application Verifier
+	input    chan *Envelope
+	output   chan *Envelope
+	verifier Verifier
 }
 
 type Verifier interface {
-	Verify(AddressInput)
+	Verify(AddressInput) AddressOutput
 }
 
-func NewVerifyHandler(in, out chan *Envelope, application Verifier) *VerifyHandler {
+func NewVerifyHandler(in, out chan *Envelope, verifier Verifier) *VerifyHandler {
 	return &VerifyHandler{
-		in:          in,
-		out:         out,
-		application: application,
+		input:    in,
+		output:   out,
+		verifier: verifier,
 	}
 }
 
 func (this *VerifyHandler) Handle() {
-	received := <-this.in
-
-	this.application.Verify(received.Input)
-
-	this.out <- received
+	for envelope := range this.input {
+		envelope.Output = this.verifier.Verify(envelope.Input)
+		this.output <- envelope
+	}
 }

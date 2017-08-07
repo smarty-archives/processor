@@ -1,9 +1,16 @@
 package processor
 
-type Envelope struct {
-	Input AddressInput
-}
+type (
+	Envelope struct {
+		Input  AddressInput
+		Output AddressOutput
+	}
 
-type AddressInput struct {
-	Street1 string
-}
+	AddressInput struct {
+		Street1 string
+	}
+
+	AddressOutput struct {
+		DeliveryLine1 string
+	}
+)
