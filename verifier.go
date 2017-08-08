@@ -16,12 +16,8 @@ type SmartyVerifier struct {
 
 func (this *SmartyVerifier) Verify(input AddressInput) AddressOutput {
 	response, _ := this.client.Do(this.buildRequest(input))
-	output, err := this.decodeResponse(response)
-	if err != nil {
-		return AddressOutput{Status: "Invalid API Response"}
-	}
-
-	return this.translateCandidate(output[0])
+	candidates := this.decodeResponse(response)
+	return this.prepareAddressOutput(candidates)
 }
 func (this *SmartyVerifier) buildRequest(input AddressInput) *http.Request {
 	query := make(url.Values)
@@ -32,12 +28,19 @@ func (this *SmartyVerifier) buildRequest(input AddressInput) *http.Request {
 	request, _ := http.NewRequest("GET", "/street-address?"+query.Encode(), nil)
 	return request
 }
-func (this *SmartyVerifier) decodeResponse(response *http.Response) ([]Candidate, error) {
-	var output []Candidate
-	err := json.NewDecoder(response.Body).Decode(&output)
-	return output, err
+func (this *SmartyVerifier) decodeResponse(response *http.Response) (output []Candidate) {
+	if response != nil {
+		defer response.Body.Close()
+		json.NewDecoder(response.Body).Decode(&output)
+	}
+	return output
 }
-func (this *SmartyVerifier) translateCandidate(candidate Candidate) AddressOutput {
+func (this *SmartyVerifier) prepareAddressOutput(candidates []Candidate) AddressOutput {
+	if len(candidates) == 0 {
+		return AddressOutput{Status: "Invalid API Response"}
+	}
+
+	candidate := candidates[0]
 	return AddressOutput{
 		DeliveryLine1: candidate.DeliveryLine1,
 		LastLine:      candidate.LastLine,

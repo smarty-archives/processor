@@ -6,7 +6,8 @@ import (
 	"net/http"
 
 	"bytes"
-	"io/ioutil"
+
+	"errors"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -87,25 +88,59 @@ func (this *VerifierFixture) TestMalformedJSONHandled() {
 	this.So(result.Status, should.Equal, "Invalid API Response")
 }
 
+func (this *VerifierFixture) TestHTTPErrorHandled() {
+	this.client.Configure("", 0, errors.New("GOPHERS!"))
+
+	result := this.verifier.Verify(AddressInput{})
+
+	this.So(result.Status, should.Equal, "Invalid API Response")
+}
+
+func (this *VerifierFixture) TestHTTPResponseBodyClosed() {
+	this.client.Configure(rawJSONOutput, http.StatusOK, nil)
+	this.verifier.Verify(AddressInput{})
+	this.So(this.client.responseBody.closed, should.Equal, 1)
+}
+
 ///////////////////////////////////////////////////////////////
 
 type FakeHTTPClient struct {
-	request  *http.Request
-	response *http.Response
-	err      error
+	request      *http.Request
+	response     *http.Response
+	responseBody *SpyBuffer
+	err          error
 }
 
 func (this *FakeHTTPClient) Configure(responseText string, statusCode int, err error) {
-	this.response = &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewBufferString(responseText)),
-		StatusCode: statusCode,
+	if err == nil {
+		this.responseBody = NewSpyBuffer(responseText)
+		this.response = &http.Response{
+			Body:       this.responseBody,
+			StatusCode: statusCode,
+		}
 	}
 	this.err = err
 }
-
 func (this *FakeHTTPClient) Do(request *http.Request) (*http.Response, error) {
 	this.request = request
 	return this.response, this.err
 }
 
+///////////////////////////////////////////////////////////////
 
+type SpyBuffer struct {
+	*bytes.Buffer
+	closed int
+}
+
+func NewSpyBuffer(value string) *SpyBuffer {
+	return &SpyBuffer{
+		Buffer: bytes.NewBufferString(value),
+	}
+}
+
+func (this *SpyBuffer) Close() error {
+	this.closed++
+	this.Buffer.Reset()
+	return nil
+}
