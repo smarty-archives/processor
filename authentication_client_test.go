@@ -1,12 +1,10 @@
 package processor
 
 import (
+	"errors"
+	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	"net/http"
-
-	"errors"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
@@ -29,15 +27,25 @@ func (this *AuthenticationClientFixture) Setup() {
 }
 
 func (this *AuthenticationClientFixture) TestProvideInformationAddedBeforeRequestIsSent() {
-	request := httptest.NewRequest("GET", "/path", nil)
+	request := httptest.NewRequest("GET", "/path?existingKey=existingValue", nil)
 
 	this.client.Do(request)
 
+	this.assertRequestConnectionInformation()
+	this.assertQueryStringIncludesAuthentication()
+}
+func (this *AuthenticationClientFixture) assertRequestConnectionInformation() {
 	this.So(this.inner.request.URL.Scheme, should.Equal, "http")
 	this.So(this.inner.request.Host, should.Equal, "different-company.com")
 	this.So(this.inner.request.URL.Host, should.Equal, "different-company.com")
-	this.So(this.inner.request.URL.Query().Get("auth-id"), should.Equal, "authid")
-	this.So(this.inner.request.URL.Query().Get("auth-token"), should.Equal, "authtoken")
+}
+func (this *AuthenticationClientFixture) assertQueryStringIncludesAuthentication() {
+	this.assertQueryStringValue("auth-id", "authid")
+	this.assertQueryStringValue("auth-token", "authtoken")
+	this.assertQueryStringValue("existingKey", "existingValue")
+}
+func (this *AuthenticationClientFixture) assertQueryStringValue(key string, expectedValue string) {
+	this.So(this.inner.request.URL.Query().Get(key), should.Equal, expectedValue)
 }
 
 func (this *AuthenticationClientFixture) TestResponseAndErrorFromInnerClientReturned() {
