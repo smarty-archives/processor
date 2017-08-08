@@ -40,14 +40,17 @@ func (this *VerifierFixture) TestRequestComposedProperly() {
 		State:   "State",
 		ZIPCode: "ZIPCode",
 	}
+
+	this.client.Configure("[{}]", http.StatusOK, nil)
+
 	this.verifier.Verify(input)
 
 	this.So(this.client.request.Method, should.Equal, "GET")
 	this.So(this.client.request.URL.Path, should.Equal, "/street-address")
-	this.AssertQueryStringValue("street", "Street1")
-	this.AssertQueryStringValue("city", "City")
-	this.AssertQueryStringValue("state", "State")
-	this.AssertQueryStringValue("zipcode", "ZIPCode")
+	this.AssertQueryStringValue("street", input.Street1)
+	this.AssertQueryStringValue("city", input.City)
+	this.AssertQueryStringValue("state", input.State)
+	this.AssertQueryStringValue("zipcode", input.ZIPCode)
 }
 func (this *VerifierFixture) AssertQueryStringValue(key, expected string) {
 	query := this.client.request.URL.Query()
@@ -55,14 +58,19 @@ func (this *VerifierFixture) AssertQueryStringValue(key, expected string) {
 }
 
 func (this *VerifierFixture) TestResponseParsed() {
-	this.client.response = &http.Response{
-		Body:       ioutil.NopCloser(bytes.NewBufferString(`[{}]`)),
-		StatusCode: http.StatusOK,
-	}
+	this.client.Configure(rawJSONOutput, http.StatusOK, nil)
 	result := this.verifier.Verify(AddressInput{})
-
-	this.So(result.DeliveryLine1, should.Equal, "Hello, World!")
+	this.So(result.DeliveryLine1, should.Equal, "1 Santa Claus Ln")
+	this.So(result.LastLine, should.Equal, "North Pole AK 99705-9901")
 }
+
+const rawJSONOutput = `
+[
+	{
+        "delivery_line_1": "1 Santa Claus Ln",
+        "last_line": "North Pole AK 99705-9901"
+    }
+]`
 
 ///////////////////////////////////////////////////////////////
 

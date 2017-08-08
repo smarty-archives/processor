@@ -15,5 +15,7 @@ type (
 
 	AddressOutput struct {
 		DeliveryLine1 string
+		LastLine      string
 	}
 )
+
