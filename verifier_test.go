@@ -62,15 +62,30 @@ func (this *VerifierFixture) TestResponseParsed() {
 	result := this.verifier.Verify(AddressInput{})
 	this.So(result.DeliveryLine1, should.Equal, "1 Santa Claus Ln")
 	this.So(result.LastLine, should.Equal, "North Pole AK 99705-9901")
+	this.So(result.City, should.Equal, "North Pole")
+	this.So(result.State, should.Equal, "AK")
+	this.So(result.ZIPCode, should.Equal, "99705")
 }
 
 const rawJSONOutput = `
 [
 	{
         "delivery_line_1": "1 Santa Claus Ln",
-        "last_line": "North Pole AK 99705-9901"
+        "last_line": "North Pole AK 99705-9901",
+        "components": {
+            "city_name": "North Pole",
+            "state_abbreviation": "AK",
+            "zipcode": "99705"
+        }
     }
 ]`
+
+func (this *VerifierFixture) TestMalformedJSONHandled() {
+	const malformedRawJSONOutput = `alert('Hello, World!' DROP TABLE Users);`
+	this.client.Configure(malformedRawJSONOutput, http.StatusOK, nil)
+	result := this.verifier.Verify(AddressInput{})
+	this.So(result.Status, should.Equal, "Invalid API Response")
+}
 
 ///////////////////////////////////////////////////////////////
 
@@ -92,3 +107,5 @@ func (this *FakeHTTPClient) Do(request *http.Request) (*http.Response, error) {
 	this.request = request
 	return this.response, this.err
 }
+
+
