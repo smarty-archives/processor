@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"testing"
 
 	"net/http"
@@ -100,6 +101,38 @@ func (this *VerifierFixture) TestHTTPResponseBodyClosed() {
 	this.client.Configure(rawJSONOutput, http.StatusOK, nil)
 	this.verifier.Verify(AddressInput{})
 	this.So(this.client.responseBody.closed, should.Equal, 1)
+}
+
+func (this *VerifierFixture) TestDeliverableAddressStatus() {
+	this.client.Configure(buildAnalysisJSON("Y", "N", "Y"), http.StatusOK, nil)
+	output := this.verifier.Verify(AddressInput{})
+	this.So(output.Status, should.Equal, "Deliverable")
+}
+
+func (this *VerifierFixture) TestValidVacantAddress() {
+	this.client.Configure(buildAnalysisJSON("Y", "Y", "Y"), http.StatusOK, nil)
+	output := this.verifier.Verify(AddressInput{})
+	this.So(output.Status, should.Equal, "Vacant")
+}
+
+func (this *VerifierFixture) TestValidInactiveAddress() {
+	this.client.Configure(buildAnalysisJSON("Y", "N", "?"), http.StatusOK, nil)
+	output := this.verifier.Verify(AddressInput{})
+	this.So(output.Status, should.Equal, "Inactive")
+}
+
+func buildAnalysisJSON(match, vacant, active string) string {
+	template := `
+	[
+		{
+			"analysis": {
+				"dpv_match_code": "%s",
+				"dpv_vacant": "%s",
+				"active": "%s"
+			}
+		}
+	]`
+	return fmt.Sprintf(template, match, vacant, active)
 }
 
 ///////////////////////////////////////////////////////////////
