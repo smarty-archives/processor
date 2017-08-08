@@ -103,22 +103,28 @@ func (this *VerifierFixture) TestHTTPResponseBodyClosed() {
 	this.So(this.client.responseBody.closed, should.Equal, 1)
 }
 
-func (this *VerifierFixture) TestDeliverableAddressStatus() {
-	this.client.Configure(buildAnalysisJSON("Y", "N", "Y"), http.StatusOK, nil)
-	output := this.verifier.Verify(AddressInput{})
-	this.So(output.Status, should.Equal, "Deliverable")
+func (this *VerifierFixture) TestAddressStatus() {
+	var (
+		deliverableJSON      = buildAnalysisJSON("Y", "N", "Y")
+		missingSecondaryJSON = buildAnalysisJSON("D", "N", "Y")
+		droppedSecondaryJSON = buildAnalysisJSON("S", "N", "Y")
+		vacantJSON           = buildAnalysisJSON("Y", "Y", "Y")
+		inactiveJSON         = buildAnalysisJSON("Y", "N", "?")
+		invalidJSON          = buildAnalysisJSON("N", "?", "?")
+	)
+
+	this.verifyAndAssertStatus(deliverableJSON, "Deliverable")
+	this.verifyAndAssertStatus(missingSecondaryJSON, "Deliverable")
+	this.verifyAndAssertStatus(droppedSecondaryJSON, "Deliverable")
+	this.verifyAndAssertStatus(vacantJSON, "Vacant")
+	this.verifyAndAssertStatus(inactiveJSON, "Inactive")
+	this.verifyAndAssertStatus(invalidJSON, "Invalid")
 }
 
-func (this *VerifierFixture) TestValidVacantAddress() {
-	this.client.Configure(buildAnalysisJSON("Y", "Y", "Y"), http.StatusOK, nil)
+func (this *VerifierFixture) verifyAndAssertStatus(jsonResponse, expectedStatus string) {
+	this.client.Configure(jsonResponse, http.StatusOK, nil)
 	output := this.verifier.Verify(AddressInput{})
-	this.So(output.Status, should.Equal, "Vacant")
-}
-
-func (this *VerifierFixture) TestValidInactiveAddress() {
-	this.client.Configure(buildAnalysisJSON("Y", "N", "?"), http.StatusOK, nil)
-	output := this.verifier.Verify(AddressInput{})
-	this.So(output.Status, should.Equal, "Inactive")
+	this.So(output.Status, should.Equal, expectedStatus)
 }
 
 func buildAnalysisJSON(match, vacant, active string) string {

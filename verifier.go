@@ -53,30 +53,17 @@ func (this *SmartyVerifier) prepareAddressOutput(candidates []Candidate) Address
 
 func computeStatus(candidate Candidate) string {
 	analysis := candidate.Analysis
-	if analysis.Match == "Y" {
-		if analysis.Vacant == "N" && analysis.Active == "Y" {
-			return "Deliverable"
-		} else if analysis.Vacant == "Y" {
-			return "Vacant"
-		} else {
-			return "Inactive"
-		}
+	if !isDeliverable(analysis.Match) {
+		return "Invalid"
+	} else if analysis.Vacant == "Y" {
+		return "Vacant"
+	} else if analysis.Active != "Y" {
+		return "Inactive"
+	} else {
+		return "Deliverable"
 	}
-
-	return ""
 }
 
-type Candidate struct {
-	DeliveryLine1 string `json:"delivery_line_1"`
-	LastLine      string `json:"last_line"`
-	Components    struct {
-		City    string `json:"city_name"`
-		State   string `json:"state_abbreviation"`
-		ZIPCode string `json:"zipcode"`
-	} `json:"components"`
-	Analysis struct {
-		Match  string `json:"dpv_match_code"`
-		Vacant string `json:"dpv_vacant"`
-		Active string `json:"active"`
-	} `json:"analysis"`
+func isDeliverable(value string) bool {
+	return value == "Y" || value == "S" || value == "D"
 }
