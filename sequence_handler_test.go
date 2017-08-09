@@ -30,7 +30,7 @@ func (this *SequenceHandlerFixture) TestExpectedEnvelopeSentToOutput() {
 
 	this.handler.Handle()
 
-	this.So(this.sequenceOrder(), should.Resemble, []int{0, 1, 2, 3, 4})
+	this.So(this.sequenceOrder(), should.Resemble, []int{0, 1, 2, 3})
 	this.So(this.handler.buffer, should.BeEmpty)
 }
 
@@ -39,20 +39,30 @@ func (this *SequenceHandlerFixture) TestEnvelopesReceivedOutOfOrder_BufferedUnti
 
 	this.handler.Handle()
 
-	this.So(this.sequenceOrder(), should.Resemble, []int{0, 1, 2, 3, 4})
+	this.So(this.sequenceOrder(), should.Resemble, []int{0, 1, 2, 3})
 	this.So(this.handler.buffer, should.BeEmpty)
 }
 func (this *SequenceHandlerFixture) sendEnvelopesInSequence(sequences ...int) {
+	max := maxInt(sequences)
+
 	for _, sequence := range sequences {
-		this.input <- &Envelope{Sequence: sequence}
+		this.input <- &Envelope{Sequence: sequence, EOF: max == sequence}
 	}
 
-	close(this.input)
+	this.input <- &Envelope{Sequence: len(sequences) + 1, EOF: true}
+}
+
+func maxInt(ints []int) (max int) {
+	for _, value := range ints {
+		if value > max {
+			max = value
+		}
+	}
+
+	return max
 }
 
 func (this *SequenceHandlerFixture) sequenceOrder() (order []int) {
-	close(this.output)
-
 	for envelope := range this.output {
 		order = append(order, envelope.Sequence)
 	}

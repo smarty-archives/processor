@@ -79,6 +79,7 @@ func (this *WriterHandlerFixture) sendEnvelopes(count int) {
 			Output: createOutput(strconv.Itoa(x)),
 		}
 	}
+
 	close(this.input)
 }
 func createOutput(index string) AddressOutput {
@@ -95,10 +96,6 @@ func createOutput(index string) AddressOutput {
 func (this *WriterHandlerFixture) outputLines() []string {
 	outputFile := strings.TrimSpace(this.buffer.String())
 	return strings.Split(outputFile, "\n")
-}
-
-func (this *WriterHandlerFixture) TestEndOfFileEnvelopeC() {
-
 }
 
 //////////////////////////////////////////////////////////
