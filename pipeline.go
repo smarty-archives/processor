@@ -1,41 +1,51 @@
 package processor
 
-import (
-	"io"
-)
+import "io"
 
 type Pipeline struct {
 	reader  io.ReadCloser
 	writer  io.WriteCloser
-	client  HTTPClient
 	workers int
+
+	verifier      Verifier
+	verifyInput   chan *Envelope
+	sequenceInput chan *Envelope
+	writerInput   chan *Envelope
 }
 
-func Configure(reader io.ReadCloser, writer io.WriteCloser, client HTTPClient, workers int) *Pipeline {
+func NewPipeline(reader io.ReadCloser, writer io.WriteCloser, client HTTPClient, workers int) *Pipeline {
 	return &Pipeline{
 		reader:  reader,
 		writer:  writer,
-		client:  client,
 		workers: workers,
+
+		verifier:      NewSmartyVerifier(client),
+		verifyInput:   make(chan *Envelope, 1024),
+		sequenceInput: make(chan *Envelope, 1024),
+		writerInput:   make(chan *Envelope, 1024),
 	}
 }
 
 func (this *Pipeline) Process() (err error) {
-	verifyInput := make(chan *Envelope, 1024)
-	sequenceInput := make(chan *Envelope, 1024)
-	writerInput := make(chan *Envelope, 1024)
-
-	verifier := NewSmartyVerifier(this.client)
-
-	for i := 0; i < this.workers; i++ {
-		go NewVerifyHandler(verifyInput, sequenceInput, verifier).Handle()
-	}
+	this.startVerifyHandlers()
 
 	go func() {
-		err = NewReaderHandler(this.reader, verifyInput).Handle()
+		err = NewReaderHandler(this.reader, this.verifyInput).Handle()
 	}()
-	go NewSequenceHandler(sequenceInput, writerInput).Handle()
 
-	NewWriterHandler(writerInput, this.writer).Handle()
+	this.startSequenceHandler()
+	this.awaitWriterHandler()
+
 	return err
+}
+func (this *Pipeline) startSequenceHandler() {
+	go NewSequenceHandler(this.sequenceInput, this.writerInput).Handle()
+}
+func (this *Pipeline) startVerifyHandlers() {
+	for i := 0; i < this.workers; i++ {
+		go NewVerifyHandler(this.verifyInput, this.sequenceInput, this.verifier).Handle()
+	}
+}
+func (this *Pipeline) awaitWriterHandler() {
+	NewWriterHandler(this.writerInput, this.writer).Handle()
 }

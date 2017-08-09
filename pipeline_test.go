@@ -1,7 +1,8 @@
 package processor
 
 import (
-	"log"
+	"fmt"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -23,17 +24,16 @@ type PipelineFixture struct {
 }
 
 func (this *PipelineFixture) Setup() {
-	log.SetFlags(log.Llongfile | log.Lmicroseconds)
 	this.reader = NewReadWriteSpyBuffer("")
 	this.writer = NewReadWriteSpyBuffer("")
 	this.client = &IntegrationHTTPClient{}
-	this.pipeline = Configure(this.reader, this.writer, this.client, 1)
+	this.pipeline = NewPipeline(ioutil.NopCloser(this.reader), this.writer, this.client, 2)
 }
 
 func (this *PipelineFixture) LongTestPipeline() {
-	this.reader.WriteString("Street1,City,State,ZIPCode")
-	this.reader.WriteString("A,B,C,D")
-	this.reader.WriteString("A,B,C,D")
+	fmt.Fprintln(this.reader, "Street1,City,State,ZIPCode")
+	fmt.Fprintln(this.reader, "A,B,C,D")
+	fmt.Fprintln(this.reader, "A,B,C,D")
 
 	err := this.pipeline.Process()
 
@@ -63,12 +63,10 @@ const integrationJSONOutput = `
             "state_abbreviation": "DD",
             "zipcode": "EE"
         },
-        {
-			"analysis": {
-				"dpv_match_code": "Y",
-				"dpv_vacant": "N",
-				"active": "Y"
-			}
+		"analysis": {
+			"dpv_match_code": "Y",
+			"dpv_vacant": "N",
+			"active": "Y"
 		}
     }
 ]`

@@ -1,7 +1,5 @@
 package processor
 
-import "log"
-
 type SequenceHandler struct {
 	input   chan *Envelope
 	output  chan *Envelope
@@ -20,7 +18,6 @@ func NewSequenceHandler(input, output chan *Envelope) *SequenceHandler {
 
 func (this *SequenceHandler) Handle() {
 	for envelope := range this.input {
-		log.Println("Received:", envelope)
 		this.processEnvelope(envelope)
 	}
 
