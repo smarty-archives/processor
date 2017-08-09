@@ -5,9 +5,9 @@
 - [ ] Main and wireup
 - [ ] 	CLI flags? (API authentication, HTTP scheme/hostname, number of verifiers, input/output file paths vs. stdin/stdout?)
 - [ ] 	Channels (buffered? size?)
-- [ ] 	Shut down (sync.WaitGroup vs. cascading close)
-- [ ] Reader phase
-- [ ] 	handle malformed input? (log.Fatal() vs. blank row in output)
+- [X] 	Shut down (cascading close)
+- [X] Reader phase
+- [X] 	handle malformed input? (log.Fatal() vs. blank row in output)
 - [X] Verify phase
 - [X] 	Handler
 - [X] 	Verifier
@@ -18,4 +18,4 @@
 - [•] 		Check for valid auth and active subscription at startup (fail fast with log.Fatal?)
 - [•] 		Metadata (lat/lon, RDI?, etc...)
 - [X] Sequence phase
-- [ ] Writer phase
+- [X] Writer phase
