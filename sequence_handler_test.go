@@ -1,6 +1,7 @@
 package processor
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/smartystreets/assertions/should"
@@ -31,7 +32,9 @@ func (this *SequenceHandlerFixture) TestExpectedEnvelopeSentToOutput() {
 	this.handler.Handle()
 
 	this.So(this.sequenceOrder(), should.Resemble, []int{0, 1, 2, 3})
-	this.So(this.handler.buffer, should.BeEmpty)
+	if !this.So(this.handler.buffer, should.BeEmpty) {
+		fmt.Println(this.handler.buffer[6])
+	}
 }
 
 func (this *SequenceHandlerFixture) TestEnvelopesReceivedOutOfOrder_BufferedUntilContiguousBlock() {
@@ -48,8 +51,6 @@ func (this *SequenceHandlerFixture) sendEnvelopesInSequence(sequences ...int) {
 	for _, sequence := range sequences {
 		this.input <- &Envelope{Sequence: sequence, EOF: max == sequence}
 	}
-
-	this.input <- &Envelope{Sequence: len(sequences) + 1, EOF: true}
 }
 
 func maxInt(ints []int) (max int) {

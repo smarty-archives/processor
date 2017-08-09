@@ -21,7 +21,6 @@ func (this *SequenceHandler) Handle() {
 		this.processEnvelope(envelope)
 	}
 
-	close(this.input)
 	close(this.output)
 }
 
@@ -36,15 +35,16 @@ func (this *SequenceHandler) sendBufferedEnvelopesInOrder() {
 		if !found {
 			break
 		}
-		if next.EOF {
-			close(this.input)
-		} else {
-			this.output <- next
-		}
-		delete(this.buffer, this.counter)
-		this.counter++
-		if next.EOF {
-			close(this.output)
-		}
+		this.sendNextEnvelope(next)
 	}
+}
+
+func (this *SequenceHandler) sendNextEnvelope(envelope *Envelope) {
+	if envelope.EOF {
+		close(this.input)
+	} else {
+		this.output <- envelope
+	}
+	delete(this.buffer, this.counter)
+	this.counter++
 }
