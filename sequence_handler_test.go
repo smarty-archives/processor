@@ -46,9 +46,9 @@ func (this *SequenceHandlerFixture) sendEnvelopesInSequence(sequences ...int) {
 	for _, sequence := range sequences {
 		this.input <- &Envelope{Sequence: sequence}
 	}
+
 	close(this.input)
 }
-
 
 func (this *SequenceHandlerFixture) sequenceOrder() (order []int) {
 	close(this.output)

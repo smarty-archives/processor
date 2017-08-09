@@ -9,9 +9,10 @@ type SequenceHandler struct {
 
 func NewSequenceHandler(input, output chan *Envelope) *SequenceHandler {
 	return &SequenceHandler{
-		input:  input,
-		output: output,
-		buffer: make(map[int]*Envelope),
+		input:   input,
+		output:  output,
+		counter: initialSequenceValue,
+		buffer:  make(map[int]*Envelope),
 	}
 }
 

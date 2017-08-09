@@ -97,6 +97,10 @@ func (this *WriterHandlerFixture) outputLines() []string {
 	return strings.Split(outputFile, "\n")
 }
 
+func (this *WriterHandlerFixture) TestEndOfFileEnvelopeC() {
+
+}
+
 //////////////////////////////////////////////////////////
 
 type ReadWriteSpyBuffer struct {
