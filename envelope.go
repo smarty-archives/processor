@@ -2,6 +2,7 @@ package processor
 
 type (
 	Envelope struct {
+		EOF      bool
 		Input    AddressInput
 		Output   AddressOutput
 		Sequence int
