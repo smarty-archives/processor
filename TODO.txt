@@ -1,6 +1,7 @@
 # Processor
 
 - [ ] Put main in separate package
+- [ ] Cleanup (gofmt/goimports, consistency, readability)
 - [ ] Main and wireup
 - [ ] 	CLI flags? (API authentication, HTTP scheme/hostname, number of verifiers, input/output file paths vs. stdin/stdout?)
 - [ ] 	Channels (buffered? size?)

@@ -17,7 +17,7 @@ func NewWriterHandler(input chan *Envelope, output io.WriteCloser) *WriterHandle
 		closer: output,
 		writer: csv.NewWriter(output),
 	}
-	this.writeValues("Status", "DeliveryLine1", "City", "State", "ZIPCode")
+	this.writeValues("Status", "DeliveryLine1", "LastLine", "City", "State", "ZIPCode")
 	return this
 }
 

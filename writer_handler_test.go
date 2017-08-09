@@ -20,21 +20,40 @@ type WriterHandlerFixture struct {
 
 	handler *WriterHandler
 	input   chan *Envelope
-	buffer  *WriterSpyBuffer
+	buffer  *ReadWriteSpyBuffer
 	writer  *csv.Writer
 }
 
 func (this *WriterHandlerFixture) Setup() {
-	this.buffer = NewWriterSpyBuffer("")
+	this.buffer = NewReadWriteSpyBuffer("")
 	this.input = make(chan *Envelope, 10)
 	this.handler = NewWriterHandler(this.input, this.buffer)
 }
 
-func (this *WriterHandlerFixture) TestHeaderWritten() {
+var recordMatchingHeader = AddressOutput{
+	Status:        "Status",
+	DeliveryLine1: "DeliveryLine1",
+	LastLine:      "LastLine",
+	City:          "City",
+	State:         "State",
+	ZIPCode:       "ZIPCode",
+}
+
+func (this *WriterHandlerFixture) TestHeaderMatchesRecords() {
+	this.input <- &Envelope{Output: recordMatchingHeader}
 	close(this.input)
+
 	this.handler.Handle()
 
-	this.So(this.buffer.String(), should.Equal, "Status,DeliveryLine1,City,State,ZIPCode\n")
+	this.assertHeaderMatchesRecord()
+}
+func (this *WriterHandlerFixture) assertHeaderMatchesRecord() {
+	lines := this.outputLines()
+	header := lines[0]
+	record := lines[1]
+
+	this.So(header, should.Equal, "Status,DeliveryLine1,LastLine,City,State,ZIPCode")
+	this.So(record, should.Equal, header)
 }
 
 func (this *WriterHandlerFixture) TestAllEnvelopesWritten() {
@@ -80,18 +99,18 @@ func (this *WriterHandlerFixture) outputLines() []string {
 
 //////////////////////////////////////////////////////////
 
-type WriterSpyBuffer struct {
+type ReadWriteSpyBuffer struct {
 	*bytes.Buffer
 	closed int
 }
 
-func NewWriterSpyBuffer(value string) *WriterSpyBuffer {
-	return &WriterSpyBuffer{
+func NewReadWriteSpyBuffer(value string) *ReadWriteSpyBuffer {
+	return &ReadWriteSpyBuffer{
 		Buffer: bytes.NewBufferString(value),
 	}
 }
 
-func (this *WriterSpyBuffer) Close() error {
+func (this *ReadWriteSpyBuffer) Close() error {
 	this.closed++
 	return nil
 }
