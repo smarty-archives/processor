@@ -6,15 +6,15 @@
 - [ ] 	Channels (buffered? size?)
 - [ ] 	Shut down (sync.WaitGroup vs. cascading close)
 - [ ] Reader phase
-- [ ] 	handle malformed input? (Panic vs. blank row in output)
+- [ ] 	handle malformed input? (log.Fatal() vs. blank row in output)
 - [X] Verify phase
 - [X] 	Handler
 - [X] 	Verifier
 - [X] 		Nesting HTTP clients (auth, hostname, etc...)
 - [X] 		Address fields (street, city, state, zip code)
 - [X] 		Status field (Deliverable, Vacant, etc...)
-- [ ]       Timeouts?
-- [ ] 		Check for valid auth and active subscription at startup (fail fast with log.Fatal?)
-- [ ] 		Metadata (lat/lon, RDI?, etc...)
+- [•]       Timeouts?
+- [•] 		Check for valid auth and active subscription at startup (fail fast with log.Fatal?)
+- [•] 		Metadata (lat/lon, RDI?, etc...)
 - [X] Sequence phase
 - [ ] Writer phase
