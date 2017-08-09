@@ -1,14 +1,11 @@
 package processor
 
 import (
-	"fmt"
-	"testing"
-
-	"net/http"
-
 	"bytes"
-
 	"errors"
+	"fmt"
+	"net/http"
+	"testing"
 
 	"github.com/smartystreets/assertions/should"
 	"github.com/smartystreets/gunit"
