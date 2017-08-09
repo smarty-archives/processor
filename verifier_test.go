@@ -29,11 +29,6 @@ func (this *VerifierFixture) Setup() {
 	this.client = &FakeHTTPClient{}
 	this.verifier = NewSmartyVerifier(this.client)
 }
-func NewSmartyVerifier(client HTTPClient) *SmartyVerifier {
-	return &SmartyVerifier{
-		client: client,
-	}
-}
 
 func (this *VerifierFixture) TestRequestComposedProperly() {
 	input := AddressInput{

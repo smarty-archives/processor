@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"errors"
 	"io"
+	"log"
 )
 
 type ReaderHandler struct {
@@ -30,6 +31,7 @@ func (this *ReaderHandler) Handle() error {
 
 	for {
 		record, err := this.reader.Read()
+		log.Println("Record from file:", record)
 		if err == io.EOF {
 			break
 		} else if err != nil {
@@ -47,10 +49,12 @@ func (this *ReaderHandler) skipHeader() {
 }
 
 func (this *ReaderHandler) sendEnvelope(record []string) {
-	this.output <- &Envelope{
+	envelope := &Envelope{
 		Sequence: this.sequence,
 		Input:    createInput(record),
 	}
+	log.Println("Sending:", envelope)
+	this.output <- envelope
 	this.sequence++
 }
 
